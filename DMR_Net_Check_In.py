@@ -1,12 +1,5 @@
-#!/usr/bin/env python
-# coding: utf-8
-
-# In[2]:
-
-
 #
 #  This script generates a weekly report from our DMR Net Check-In data.
-#
 #
 #
 
@@ -93,7 +86,18 @@ checkins_df["Date"] = pd.to_datetime(checkins_df["Date"]).dt.strftime('%Y-%m-%d'
 callinfo_df = pd.read_excel(xls, "Call_Data", dtype=str)
 #print("callinfo_df:")
 #print(callinfo_df)
+hh_dir_df = pd.read_excel(xls, "Hamshack_Hotline", dtype=str)
+#print("hh_dir_df:")
+#print(hh_dir_df)
 
+# build dictionary of HH phone numbers
+hh_phone_dict = {"Callsign" : "HH Number"}
+for i,row in hh_dir_df.iterrows():
+    callsign = row[1]
+    hh_num = row[7]
+    # we only add the hh number first seen for a unique callsign
+    if callsign not in hh_phone_dict.keys():
+        hh_phone_dict.update({callsign : hh_num})
 
 # fill in any missing data (NAN's) with default text
 callinfo_df['Name'].fillna('', inplace=True)
@@ -104,6 +108,7 @@ callinfo_df['Affiliation'].fillna('', inplace=True)
 
 # build dictionary of calls indexed by check-in date
 calls_on_date_dict = {}
+checkin_count_dict = {"Callsign" : "Check-in Count"}
 for i,row in checkins_df.iterrows():
     checkin_date = row[0]
     checkin_call = row[1]
@@ -112,24 +117,35 @@ for i,row in checkins_df.iterrows():
             calls_on_date_dict[checkin_date].append(checkin_call)
     else:
         calls_on_date_dict.update({checkin_date:[checkin_call]})
+    if checkin_call in checkin_count_dict.keys():
+        checkin_count_dict[checkin_call] = checkin_count_dict[checkin_call] + 1
+    else:
+        checkin_count_dict.update({checkin_call : 1})
 
 # build dictionary of call info indexed by callsign
 call_data_dict = {}
 for i,row in callinfo_df.iterrows():
-    # row of data is call, name, state, district, county, affiliation
-    # dictionary becomes: { call: [name[0], state[1], district[2], county[3], affiliation[4]]}
-    call_data_dict.update({row[0]:[row[1],row[2],row[3],row[4],row[5]]})
-
+    # row of data is call, name, state, district, county, affiliation, hh_num
+    # dictionary becomes: { call: [name[0], state[1], district[2], county[3], affiliation[4]], hh_num[5]}
+    callsign = row[0]
+    if callsign in hh_phone_dict.keys():
+        hh_num = hh_phone_dict[callsign]
+    else:
+        hh_num = ""
+    call_data_dict.update({callsign:[row[1],row[2],row[3],row[4],row[5],hh_num]})
 
 # build checkin_form_dict dictionary
 checkin_form_dict = blank_checkin_form_dict
 for call in call_data_dict.keys():
     #print("Looking at:", call)
+    #if call in hh_phone_dict.keys():
+        #print("Call "+call+" has HH VOIP #"+hh_phone_dict[call])
     call_state = call_data_dict[call][1]
     call_dist = call_data_dict[call][2]
     call_county = call_data_dict[call][3]
     call_affil = call_data_dict[call][4]
-    #print("State, Dist, Cnty, Affil: ", call_state, call_dist, call_county, call_affil)
+    call_hh_num = call_data_dict[call][5]
+    #print("State, Dist, Cnty, Affil, HH Num: ", call_state, call_dist, call_county, call_affil, call_hh_num)
 
     # sanity check the data - error if not found in dictionary keys...
     #print("Verifying at: ", call, call_state, call_dist, call_county)
@@ -192,9 +208,17 @@ with open(output_file,"w") as outfile:
                         call_name = call_data_dict[call][0]
                         call_county = call_data_dict[call][3]
                         call_affil = call_data_dict[call][4]
-                        outfile.write("         "+call+" "+call_name+" ["+call_county+"]")
+                        if call in checkin_count_dict.keys():
+                            checkin_count = checkin_count_dict[call]
+                            checkin_str = ", [{}]".format(checkin_count)
+                        else:
+                            checkin_count = 0
+                            checkin_str = ""
+                        outfile.write("         "+call+", "+call_name+checkin_str)
+                        if call in hh_phone_dict.keys():
+                            outfile.write(", HH VOIP #"+hh_phone_dict[call])
                         if call_affil != "":
-                            outfile.write(" ("+call_affil+")\n")
+                            outfile.write(", "+call_affil+"\n")
                         else:
                             outfile.write("\n")
                 else:
@@ -202,21 +226,46 @@ with open(output_file,"w") as outfile:
                         call_list = checkin_form_dict[state][district][county]
                         call_list.sort()
                         for call in call_list:
+                            if call in checkin_count_dict.keys():
+                                checkin_count = checkin_count_dict[call]
+                                checkin_str = ", [{}]".format(checkin_count)
+                            else:
+                                checkin_count = 0
+                                checkin_str = ""
+                            outfile.write("      "+call+", "+call_data_dict[call][0]+checkin_str)
+                            if call in hh_phone_dict.keys():
+                                outfile.write(", HH VOIP #"+hh_phone_dict[call])
                             affil = call_data_dict[call][4]
                             if affil != '':
-                                outfile.write("      "+call+" "+call_data_dict[call][0]+" ("+affil+")\n")
+                                outfile.write(", "+affil+"\n")
                             else:
-                                outfile.write("      "+call+" "+call_data_dict[call][0]+"\n")
+                                outfile.write("\n")
                 outfile.write("\n")
             outfile.write("\n")
         else:
-            outfile.write("Country:  "+state+"\n")
+            if state == "Visitor":
+                outfile.write("Visitor Check-ins:\n")
+            else:
+                outfile.write("Country:  "+state+"\n")
             for district in checkin_form_dict[state].keys():
                 for county in checkin_form_dict[state][district].keys():
                     call_list = checkin_form_dict[state][district][county]
                     call_list.sort()
                     for call in call_list:
-                        outfile.write("      "+call+" "+call_data_dict[call][0]+" ("+call_data_dict[call][4]+")\n")
+                        if call in checkin_count_dict.keys():
+                            checkin_count = checkin_count_dict[call]
+                            checkin_str = ", [{}]".format(checkin_count)
+                        else:
+                            checkin_count = 0
+                            checkin_str = ""
+                        outfile.write("      "+call+", "+call_data_dict[call][0]+checkin_str)
+                        if call in hh_phone_dict.keys():
+                            outfile.write(", HH VOIP #"+hh_phone_dict[call])
+                        affil = call_data_dict[call][4]
+                        if affil != '':
+                            outfile.write(", "+affil+"\n")
+                        else:
+                            outfile.write("\n")
                 outfile.write("\n")
             outfile.write("\n")
 
@@ -306,28 +355,48 @@ for net_day in net_day_list:
                                 cur_call_list.sort()
                                 for call in cur_call_list:
                                     affil = call_data_dict[call][4]
+                                    hh_num = call_data_dict[call][5]
+                                    outfile.write("            "+call+", "+call_data_dict[call][0])
+                                    if hh_num != '':
+                                        outfile.write(", HH VOIP #"+hh_num)
                                     if affil != '':
-                                        outfile.write("            "+call+" "+call_data_dict[call][0]+" ("+affil+")\n")
+                                        outfile.write(", "+affil+"\n")
                                     else:
-                                        outfile.write("            "+call+" "+call_data_dict[call][0]+"\n")
+                                        outfile.write("\n")
                     else:
                         outfile.write("   "+district+"\n")
                         for county in sorted(report_dict[state][district]):
                             cur_call_list = report_dict[state][district][county]
                             cur_call_list.sort()
                             for call in cur_call_list:
-                                outfile.write("      "+call+" "+call_data_dict[call][0]+" ("+call_data_dict[call][4]+")\n")
+                                affil = call_data_dict[call][4]
+                                hh_num = call_data_dict[call][5]
+                                outfile.write("      "+call+", "+call_data_dict[call][0])
+                                if hh_num != '':
+                                    outfile.write(", HH VOIP #"+hh_num)
+                                if affil != '':
+                                    outfile.write(", "+affil+"\n")
+                                else:
+                                    outfile.write("\n")
                     #outfile.write("\n")
                 outfile.write("\n")
         for state in sorted(report_dict):
-            if state in ['Philippines','Canada','Visitor']:
+            if state in ['Canada','Philippines','Visitor']:
                 outfile.write(state+":\n")
                 for district in sorted(report_dict[state]):
                     for county in sorted(report_dict[state][district]):
                         cur_call_list = report_dict[state][district][county]
                         cur_call_list.sort()
                         for call in cur_call_list:
-                            outfile.write("      "+call+" "+call_data_dict[call][0]+" ("+call_data_dict[call][4]+")\n")
+                            affil = call_data_dict[call][4]
+                            hh_num = call_data_dict[call][5]
+                            outfile.write("      "+call+", "+call_data_dict[call][0])
+                            if hh_num != '':
+                                outfile.write(", HH VOIP #"+hh_num)
+                            if affil != '':
+                                outfile.write(", "+affil+"\n")
+                            else:
+                                outfile.write("\n")
                     outfile.write("\n")
                 outfile.write("\n")
 
