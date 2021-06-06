@@ -57,7 +57,7 @@ blank_checkin_form_dict = {
               '2':{'Clallam':[],'Jefferson':[],'Kitsap':[], 'unknown':[]},
               '3':{'Grays Harbor':[],'Lewis':[],'Mason':[],'Pacific':[],'Thurston':[]},
               '4':{'Clark':[],'Cowlitz':[],'Skamania':[],'Wahkiakum':[]},
-              '5':{'Pierce':[],'East Thurston':[]},
+              '5':{'Pierce':[]},
               '6':{'King':[]},
               '7':{'Chelan':[],'Douglas':[],'Grant':[],'Kittitas':[],'Okanogan':[]},
               '8':{'Benton':[],'Franklin':[],'Klickitat':[],'Walla Walla':[],'Yakima':[]},
@@ -77,7 +77,7 @@ blank_checkin_form_dict = {
 # create dataframes from input file
 print("Reading input file from: ")
 print("  ", data_file)
-xls = pd.ExcelFile(data_file)
+xls = pd.ExcelFile(data_file, engine='openpyxl')
 checkins_df = pd.read_excel(xls, "Check-ins", dtype=str)
 checkins_df["Date"] = pd.to_datetime(checkins_df["Date"]).dt.strftime('%Y-%m-%d')
 #checkins_df['Date'] = checkins_df['Date'].strftime('%Y-%m-%d')
