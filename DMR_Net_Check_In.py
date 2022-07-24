@@ -148,7 +148,7 @@ for call in call_data_dict.keys():
     #print("State, Dist, Cnty, Affil, HH Num: ", call_state, call_dist, call_county, call_affil, call_hh_num)
 
     # sanity check the data - error if not found in dictionary keys...
-    #print("Verifying at: ", call, call_state, call_dist, call_county)
+    # print("Verifying at: ", call, call_state, call_dist, call_county)
     if call_state not in checkin_form_dict.keys():
         print("ERROR: ",call_state,"not in checkin_form_dict!")
     if call_dist not in checkin_form_dict[call_state].keys():
@@ -214,13 +214,14 @@ with open(output_file,"w") as outfile:
                         else:
                             checkin_count = 0
                             checkin_str = ""
-                        outfile.write("         "+call+", "+call_name+checkin_str)
-                        if call in hh_phone_dict.keys():
-                            outfile.write(", HH VOIP #"+hh_phone_dict[call])
-                        if call_affil != "":
-                            outfile.write(", "+call_affil+"\n")
-                        else:
-                            outfile.write("\n")
+                        if checkin_count > 0:
+                            outfile.write("         "+call+", "+call_name+checkin_str)
+                            if call in hh_phone_dict.keys():
+                                outfile.write(", HH VOIP #"+hh_phone_dict[call])
+                            if call_affil != "":
+                                outfile.write(", "+call_affil+"\n")
+                            else:
+                                outfile.write("\n")
                 else:
                     for county in checkin_form_dict[state][district].keys():
                         call_list = checkin_form_dict[state][district][county]
@@ -232,14 +233,15 @@ with open(output_file,"w") as outfile:
                             else:
                                 checkin_count = 0
                                 checkin_str = ""
-                            outfile.write("      "+call+", "+call_data_dict[call][0]+checkin_str)
-                            if call in hh_phone_dict.keys():
-                                outfile.write(", HH VOIP #"+hh_phone_dict[call])
-                            affil = call_data_dict[call][4]
-                            if affil != '':
-                                outfile.write(", "+affil+"\n")
-                            else:
-                                outfile.write("\n")
+                            if checkin_count > 0:
+                                outfile.write("      "+call+", "+call_data_dict[call][0]+checkin_str)
+                                if call in hh_phone_dict.keys():
+                                    outfile.write(", HH VOIP #"+hh_phone_dict[call])
+                                affil = call_data_dict[call][4]
+                                if affil != '':
+                                    outfile.write(", "+affil+"\n")
+                                else:
+                                    outfile.write("\n")
                 outfile.write("\n")
             outfile.write("\n")
         else:
@@ -275,6 +277,7 @@ outfile.close()
 # generate net reports based on check-in data
 report_dir = os.path.join(data_dir, "reports")
 net_day_list = checkins_df['Date'].unique()
+#print("DEBUG: net_dat_list =", net_day_list)
 for net_day in net_day_list:
 
     #print("Looking at checkins for: ", net_day)
@@ -339,7 +342,7 @@ for net_day in net_day_list:
         outfile.write("Digital ARES & EMCOMM Check-In Net.  Below is the detailed check-in list grouped\n")
         outfile.write("by ARRL ARES districts.  If any of the info (i.e. name or agency affiliation) below is\n")
         outfile.write("incomplete or incorrect, please call me on Hamshack Hotline (HH) VOIP x11893, or\n")
-        outfile.write("e-mail \"ec@etc-ares.org\" with the correction(s).\n\n")
+        outfile.write("e-mail \"ed@n7ekb.net\" with the correction(s).\n\n")
 
         # Check-in details
         for state in sorted(report_dict):
@@ -402,7 +405,7 @@ for net_day in net_day_list:
 
         # output the footer text...
         outfile.write("\nAbout the net:\n\n")
-        outfile.write("The PNW Digital ARES & EMCOMM Check-In Net is held every Sunday evening at 6:30 PM local\n")
+        outfile.write("The PNW Digital ARES & EMCOMM Check-In Net is held every Saturday evening at 7:30 PM local\n")
         outfile.write("time on PNW Regional, DMR talk group 31771 (available on both the PNW Digital http://pnwdigital.net\n")
         outfile.write("and Brandmeister DMR networks).  Anyone interested in Amateur Radio Emergency Communications is\n")
         outfile.write("welcome to check-in.  The net is an opportunity for DMR-capable ARES and EMCOMM hams to exercise\n")
