@@ -405,7 +405,7 @@ for net_day in net_day_list:
 
         # output the footer text...
         outfile.write("\nAbout the net:\n\n")
-        outfile.write("The PNW Digital ARES & EMCOMM Check-In Net is held every Saturday evening at 7:30 PM local\n")
+        outfile.write("The PNW Digital ARES & EMCOMM Check-In Net is held every Sunday evening at 7:30 PM local\n")
         outfile.write("time on PNW Regional, DMR talk group 31771 (available on both the PNW Digital http://pnwdigital.net\n")
         outfile.write("and Brandmeister DMR networks).  Anyone interested in Amateur Radio Emergency Communications is\n")
         outfile.write("welcome to check-in.  The net is an opportunity for DMR-capable ARES and EMCOMM hams to exercise\n")
