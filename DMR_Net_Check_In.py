@@ -67,7 +67,7 @@ blank_checkin_form_dict = {
             },
        'Philippines': { '-':{'-':[]}
             },
-       'Canada': {'n/a':{'n/a':[]}
+       'Canada': {'-':{'-':[]}
             },
        'Visitor' : { '-':{'-':[]}
             }
@@ -93,8 +93,8 @@ hh_dir_df = pd.read_excel(xls, "Hamshack_Hotline", dtype=str)
 # build dictionary of HH phone numbers
 hh_phone_dict = {"Callsign" : "HH Number"}
 for i,row in hh_dir_df.iterrows():
-    callsign = row[1]
-    hh_num = row[7]
+    callsign = row.iloc[1]
+    hh_num = row.iloc[7]
     # we only add the hh number first seen for a unique callsign
     if callsign not in hh_phone_dict.keys():
         hh_phone_dict.update({callsign : hh_num})
@@ -110,8 +110,8 @@ callinfo_df['Affiliation'].fillna('', inplace=True)
 calls_on_date_dict = {}
 checkin_count_dict = {"Callsign" : "Check-in Count"}
 for i,row in checkins_df.iterrows():
-    checkin_date = row[0]
-    checkin_call = row[1]
+    checkin_date = row.iloc[0]
+    checkin_call = row.iloc[1]
     if checkin_date in calls_on_date_dict.keys():
         if checkin_call not in calls_on_date_dict[checkin_date]:
             calls_on_date_dict[checkin_date].append(checkin_call)
@@ -127,12 +127,12 @@ call_data_dict = {}
 for i,row in callinfo_df.iterrows():
     # row of data is call, name, state, district, county, affiliation, hh_num
     # dictionary becomes: { call: [name[0], state[1], district[2], county[3], affiliation[4]], hh_num[5]}
-    callsign = row[0]
+    callsign = row.iloc[0]
     if callsign in hh_phone_dict.keys():
         hh_num = hh_phone_dict[callsign]
     else:
         hh_num = ""
-    call_data_dict.update({callsign:[row[1],row[2],row[3],row[4],row[5],hh_num]})
+    call_data_dict.update({callsign:[row.iloc[1],row.iloc[2],row.iloc[3],row.iloc[4],row.iloc[5],hh_num]})
 
 # build checkin_form_dict dictionary
 checkin_form_dict = blank_checkin_form_dict
