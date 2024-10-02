@@ -29,6 +29,8 @@ output_file = os.path.join(data_dir, "PNW_Digital_ARES_EMCOMM_Weekly_Net_Check_I
 
 # Our check-in form as a dictionary
 blank_checkin_form_dict = {
+      'MT': { '*':{'Missoula':[]}
+            },
       'ID': { '1':{'Boundary':[],'Bonner':[],'Kootenai':[],'Benewah':[],'Shoshone':[]},
               '2':{'Latah':[],'Nez Pierce':[],'Lewis':[],'Clearwater':[],'Idaho':[]},
               '3':{'Adams':[],'Washington':[],'Payette':[],'Gem':[],'Canyon':[],'Ada':[],
