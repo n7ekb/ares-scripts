@@ -102,11 +102,11 @@ for i,row in hh_dir_df.iterrows():
         hh_phone_dict.update({callsign : hh_num})
 
 # fill in any missing data (NAN's) with default text
-callinfo_df['Name'].fillna('', inplace=True)
-callinfo_df['State'].fillna('none', inplace=True)
-callinfo_df['District'].fillna('unknown', inplace=True)
-callinfo_df['County'].fillna('unknown', inplace=True)
-callinfo_df['Affiliation'].fillna('', inplace=True)
+callinfo_df.fillna({'Name' : ''}, inplace=True)
+callinfo_df.fillna({'State' : 'none'}, inplace=True)
+callinfo_df.fillna({'District' : 'unknown'}, inplace=True)
+callinfo_df.fillna({'County' : 'unknown'}, inplace=True)
+callinfo_df.fillna({'Affiliation' : ''}, inplace=True)
 
 # build dictionary of calls indexed by check-in date
 calls_on_date_dict = {}
